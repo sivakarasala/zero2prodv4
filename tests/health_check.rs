@@ -1,7 +1,7 @@
-use sqlx::{PgConnection, Connection, Executor, PgPool};
+use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
-use zero2prodv4::configuration::{get_configuration, DatabaseSettings};
+use zero2prodv4::configuration::{DatabaseSettings, get_configuration};
 
 pub struct TestApp {
     pub address: String,
@@ -11,16 +11,16 @@ pub struct TestApp {
 /// Spin up an instance of our application
 /// and returns its address (i.e. http://localhost:xxxx)
 async fn spawn_app() -> TestApp {
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind random port");
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
-    
+
     let mut configuration = get_configuration().expect("Failed to read configuration");
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
-    let server = zero2prodv4::startup::run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let server = zero2prodv4::startup::run(listener, connection_pool.clone())
+        .expect("Failed to bind address");
     // Launch the server as a background task
     // tokio::spawn returns a handle to the spawned future,
     // but we have no use for it here, hence the non-binding let
@@ -40,9 +40,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         password: "password".to_string(),
         ..config.clone()
     };
-    let mut connection = PgConnection::connect(
-        &maintenance_settings.connection_string()
-    )
+    let mut connection = PgConnection::connect(&maintenance_settings.connection_string())
         .await
         .expect("Failed to connect to Postgres");
     connection
@@ -66,14 +64,14 @@ async fn health_check_works() {
     // We need to bring in `reqwest`
     // to perform HTTP requests against our application.
     let client = reqwest::Client::new();
-    
+
     // Act
     let response = client
         .get(&format!("{}/health_check", &app.address))
         .send()
         .await
         .expect("Failed to execute request.");
-    
+
     // Assert
     assert!(response.status().is_success());
     assert_eq!(Some(0), response.content_length());
@@ -97,7 +95,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 
     // Assert
     assert_eq!(200, response.status().as_u16());
-    
+
     let saved = sqlx::query!("SELECT email, name FROM subscriptions")
         .fetch_one(&app.db_pool)
         .await

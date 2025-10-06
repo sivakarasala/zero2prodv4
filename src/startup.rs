@@ -1,8 +1,8 @@
-use std::net::TcpListener;
-use actix_web::dev::Server;
-use actix_web::{web, App, HttpServer};
-use sqlx::PgPool;
 use crate::routes::{health_check, subscribe};
+use actix_web::dev::Server;
+use actix_web::{App, HttpServer, web};
+use sqlx::PgPool;
+use std::net::TcpListener;
 
 // We need to mark `run` as public.
 // It is no longer a binary entrypoint, therefore we can mark it as async
@@ -16,7 +16,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
             // Register the connection as part of the application state
             .app_data(db_pool.clone())
     })
-        .listen(listener)?
-        .run();
+    .listen(listener)?
+    .run();
     Ok(server)
 }
