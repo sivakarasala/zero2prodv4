@@ -21,6 +21,9 @@ name = "zero2prodv4"
 # They do not get included in the final application binary!
 [dev-dependencies]
 reqwest = "0.12"
+quickcheck = "1.0.3"
+quickcheck_macros = "1"
+rand = "0.8"
 
 [dependencies]
 actix-web = "4"
@@ -43,4 +46,8 @@ tracing-bunyan-formatter = "0.3"
 tracing-log = "0.2"
 secrecy = { version = "0.8", features = ["serde"] }
 tracing-actix-web = "0.7"
+unicode-segmentation = "1"
 serde-aux = "4"
+claims = "0.7"
+validator = "0.18"
+fake = "2.9"
