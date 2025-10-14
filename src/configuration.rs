@@ -3,14 +3,14 @@ use secrecy::{ExposeSecret, Secret};
 use serde_aux::prelude::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
@@ -28,7 +28,7 @@ impl EmailClientSettings {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
