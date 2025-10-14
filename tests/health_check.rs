@@ -4,6 +4,7 @@ use std::net::TcpListener;
 use std::sync::LazyLock;
 use uuid::Uuid;
 use zero2prodv4::configuration::{DatabaseSettings, get_configuration};
+use zero2prodv4::email_client::EmailClient;
 use zero2prodv4::telemetry::{get_subscriber, init_subscriber};
 
 static TRACING: LazyLock<()> = LazyLock::new(|| {
@@ -37,7 +38,20 @@ async fn spawn_app() -> TestApp {
     let mut configuration = get_configuration().expect("Failed to read configuration");
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
-    let server = zero2prodv4::startup::run(listener, connection_pool.clone())
+
+    let sender_email = configuration
+        .email_client
+        .sender()
+        .expect("Invalid sender email address.");
+    let timeout = configuration.email_client.timeout();
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+        timeout,
+    );
+
+    let server = zero2prodv4::startup::run(listener, connection_pool.clone(), email_client)
         .expect("Failed to bind address");
     // Launch the server as a background task
     // tokio::spawn returns a handle to the spawned future,
