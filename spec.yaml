@@ -4,7 +4,8 @@ alerts:
 name: zero2prodv4
 region: blr
 services:
-  - dockerfile_path: Dockerfile
+  - name: zero2prodv4
+    dockerfile_path: Dockerfile
     source_dir: .
     github:
       branch: main
@@ -24,6 +25,9 @@ services:
     routes:
       - path: /
     envs:
+      - key: APP_APPLICATION__BASE_URL
+        scope: RUN_TIME
+        value: ${APP_URL}
       - key: APP_DATABASE__USERNAME
         scope: RUN_TIME
         value: ${newsletter.USERNAME}
